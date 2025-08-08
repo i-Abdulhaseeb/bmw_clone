@@ -1,3 +1,4 @@
+import 'dart:ui'; // For BackdropFilter
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
@@ -36,52 +37,126 @@ class _SearchPageState extends State<SearchPage> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Cars'), centerTitle: true),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Search Cars'),
+        centerTitle: true,
+        backgroundColor: Colors.black,
+        elevation: 0,
+        foregroundColor: Colors.blueAccent,
+      ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'Search by name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: TextField(
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.05),
+                    hintText: 'Search by name',
+                    hintStyle: TextStyle(color: Colors.white54),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Colors.blueAccent,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      query = value;
+                    });
+                  },
+                ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  query = value;
-                });
-              },
             ),
           ),
           Expanded(
             child: filteredCars.isEmpty
-                ? const Center(child: Text('No cars found'))
+                ? Center(
+                    child: Text(
+                      'No cars found',
+                      style: TextStyle(color: Colors.white70, fontSize: 18),
+                    ),
+                  )
                 : ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     itemCount: filteredCars.length,
                     itemBuilder: (context, index) {
                       final car = filteredCars[index];
-                      return ListTile(
-                        leading: Image.asset(
-                          car['image']!,
-                          width: 30,
-                          height: 30,
-                          fit: BoxFit.cover,
-                        ),
-                        title: Text(car['name']!),
-                        subtitle: Text(car['info']!),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CarDetailPage(
-                                name: car['name']!,
-                                image: car['image']!,
-                                info: car['info']!,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CarDetailPage(
+                                  name: car['name']!,
+                                  image: car['image']!,
+                                  info: car['info']!,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.07),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.blueAccent.withOpacity(0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.blueAccent.withOpacity(0.3),
                               ),
                             ),
-                          );
-                        },
+                            child: ListTile(
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  car['image']!,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              title: Text(
+                                car['name']!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              subtitle: Text(
+                                car['info']!,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.blueAccent,
+                              ),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),
@@ -107,17 +182,69 @@ class CarDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(name), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: Text(name),
+        centerTitle: true,
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.blueAccent,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(image, height: 200, fit: BoxFit.cover),
-            const SizedBox(height: 20),
+            Hero(
+              tag: name,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(image, height: 280, fit: BoxFit.contain),
+              ),
+            ),
+            const SizedBox(height: 30),
+            Text(
+              name,
+              style: const TextStyle(
+                color: Colors.blueAccent,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
               info,
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 18,
+                height: 1.4,
+              ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: const Text(
+                'Explore More Models',
+                style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.1,
+                ),
+              ),
             ),
           ],
         ),

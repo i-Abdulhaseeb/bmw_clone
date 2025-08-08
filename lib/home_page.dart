@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bmw_clone/search.dart';
 import 'package:bmw_clone/car_details.dart';
+import 'package:bmw_clone/account.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -109,6 +110,11 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => SearchPage()),
+          );
+        } else if (index == 2) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AccountPage()),
           );
         }
       },
