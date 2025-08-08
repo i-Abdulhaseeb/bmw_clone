@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:bmw_clone/search.dart';
+import 'package:bmw_clone/car_details.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -7,13 +9,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-
-  // Car data
+class _HomePageState extends State<HomePage> {
   final List<Map<String, dynamic>> cars = [
     {
       "name": "BMW M4 Coupe",
@@ -41,117 +37,89 @@ class _HomePageState extends State<HomePage>
     },
   ];
 
-  int _selectedIndex = 0; // for UI highlighting
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  int _selectedIndex = 0;
 
   Widget _buildCarCard(Map<String, dynamic> car) {
-    return Container(
-      width: 300,
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CarDetails(car: car)),
+        );
+      },
+      child: Card(
         color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.3),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Image.asset(car["image"], height: 180, fit: BoxFit.contain),
-          const SizedBox(height: 10),
-          Text(
-            car["name"],
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
+              child: AspectRatio(
+                aspectRatio: 1.3, // keeps image proportion consistent
+                child: Hero(
+                  tag: car["name"],
+                  child: Image.asset(
+                    car["image"],
+                    fit: BoxFit.contain, // shows full car without cutting
+                  ),
+                ),
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            "Year: ${car["year"]}",
-            style: const TextStyle(color: Colors.white70),
-          ),
-          Text(
-            "Horsepower: ${car["hp"]}",
-            style: const TextStyle(color: Colors.white70),
-          ),
-          Text(
-            car["acceleration"],
-            style: const TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            car["price"],
-            style: const TextStyle(
-              color: Colors.blueAccent,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+            Container(
+              padding: const EdgeInsets.all(10),
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(15),
+                ),
+              ),
+              child: Text(
+                car["name"],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBottomBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border(top: BorderSide(color: Colors.grey[800]!, width: 1)),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.white54,
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index; // just UI change
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: "Account",
-          ),
-        ],
-      ),
+    return BottomNavigationBar(
+      backgroundColor: Colors.black,
+      selectedItemColor: Colors.blueAccent,
+      unselectedItemColor: Colors.white54,
+      currentIndex: _selectedIndex,
+      onTap: (index) {
+        setState(() => _selectedIndex = index);
+
+        if (index == 1) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SearchPage()),
+          );
+        }
+      },
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+        BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_circle),
+          label: "Account",
+        ),
+      ],
     );
   }
 
@@ -161,27 +129,22 @@ class _HomePageState extends State<HomePage>
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text("BMW Garage"),
-        centerTitle: true,
         backgroundColor: Colors.blueAccent,
+        centerTitle: true,
       ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: cars.length,
-                  itemBuilder: (context, index) {
-                    return _buildCarCard(cars[index]);
-                  },
-                ),
-              ),
-            ],
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // 2 cards per row
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.9, // balanced card shape
           ),
+          itemCount: cars.length,
+          itemBuilder: (context, index) {
+            return _buildCarCard(cars[index]);
+          },
         ),
       ),
       bottomNavigationBar: _buildBottomBar(),

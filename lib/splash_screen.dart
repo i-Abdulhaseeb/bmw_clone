@@ -18,16 +18,25 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _carFade;
   late Animation<Offset> _carSlide;
 
+  late AnimationController _bgController;
+
   @override
   void initState() {
     super.initState();
+
+    // Animated background gradient
+    _bgController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat(reverse: true);
 
     // Logo animation
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
+
+    _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
     _logoFade = Tween<double>(
@@ -35,28 +44,27 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1,
     ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    // Car animation (fade + slide in)
+    // Car animation
     _carController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
+
     _carFade = Tween<double>(
       begin: 0,
       end: 1,
     ).animate(CurvedAnimation(parent: _carController, curve: Curves.easeIn));
     _carSlide = Tween<Offset>(
-      begin: const Offset(0, 0.5), // start slightly below
+      begin: const Offset(0, 0.4),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _carController, curve: Curves.easeOut));
 
     _logoController.forward();
 
-    // Start car after logo
     Future.delayed(const Duration(milliseconds: 1500), () {
       _carController.forward();
     });
 
-    // Navigate after animations
     Timer(const Duration(seconds: 4), () {
       Navigator.pushReplacement(
         context,
@@ -75,55 +83,86 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _logoController.dispose();
     _carController.dispose();
+    _bgController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Moving light streak effect
-          AnimatedContainer(
-            duration: const Duration(seconds: 2),
+      body: AnimatedBuilder(
+        animation: _bgController,
+        builder: (context, child) {
+          return Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   Colors.black,
-                  Colors.blue.withOpacity(0.2),
+                  Colors.blueAccent.withOpacity(
+                    0.3 + 0.2 * _bgController.value,
+                  ),
                   Colors.black,
+                  Colors.blueGrey.withOpacity(0.3 - 0.2 * _bgController.value),
                 ],
-                stops: const [0.2, 0.5, 0.8],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-          ),
-
-          // Centered content
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FadeTransition(
-                opacity: _logoFade,
-                child: ScaleTransition(
-                  scale: _logoScale,
-                  child: Image.asset('assets/images/bmwlogo.png', width: 140),
-                ),
+            child: child,
+          );
+        },
+        child: Stack(
+          children: [
+            SizedBox.expand(
+              // 🔹 Take full width & height
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // 🔹 Center horizontally
+                children: [
+                  // Glowing BMW Logo
+                  FadeTransition(
+                    opacity: _logoFade,
+                    child: ScaleTransition(
+                      scale: _logoScale,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.6),
+                              blurRadius: 30,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/images/bmwlogo.png',
+                          width: 140,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  // Car entrance with fade + slide
+                  SlideTransition(
+                    position: _carSlide,
+                    child: FadeTransition(
+                      opacity: _carFade,
+                      child: Image.asset(
+                        'assets/images/bmw-m4.png',
+                        height: 180,
+                        fit:
+                            BoxFit.contain, // 🔹 Scales properly on all screens
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 50),
-              SlideTransition(
-                position: _carSlide,
-                child: FadeTransition(
-                  opacity: _carFade,
-                  child: Image.asset('assets/images/bmw-m4.png', height: 180),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
