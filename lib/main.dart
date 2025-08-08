@@ -6,24 +6,72 @@ void main() {
   runApp(const BMWApp());
 }
 
-class BMWApp extends StatelessWidget {
+class BMWApp extends StatefulWidget {
   const BMWApp({super.key});
+
+  @override
+  State<BMWApp> createState() => _BMWAppState();
+}
+
+class _BMWAppState extends State<BMWApp> {
+  ThemeMode _themeMode = ThemeMode.dark; // Default theme
+
+  void toggleTheme() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.dark
+          ? ThemeMode.light
+          : ThemeMode.dark;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      themeMode: _themeMode,
       theme: ThemeData(
-        fontFamily: 'Roboto', // Can be changed to BMW-style font
-        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+        brightness: Brightness.light,
+        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.blueAccent),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.black87),
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.blueAccent,
+          unselectedItemColor: Colors.black54,
+        ),
       ),
-      home: const SplashScreen(),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.blueAccent),
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.black,
+          selectedItemColor: Colors.blueAccent,
+          unselectedItemColor: Colors.white54,
+        ),
+      ),
+      home: SplashScreen(
+        toggleTheme: toggleTheme,
+        isDarkMode: _themeMode == ThemeMode.dark,
+      ),
     );
   }
 }
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final VoidCallback toggleTheme;
+  final bool isDarkMode;
+
+  const LoginPage({
+    super.key,
+    required this.toggleTheme,
+    required this.isDarkMode,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -65,9 +113,14 @@ class _LoginPageState extends State<LoginPage>
     String password = _passwordController.text.trim();
 
     if (username.isNotEmpty && password.isNotEmpty) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(
+          builder: (context) => HomePage(
+            toggleTheme: widget.toggleTheme,
+            isDarkMode: widget.isDarkMode,
+          ),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -82,6 +135,8 @@ class _LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _controller.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 

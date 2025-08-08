@@ -4,7 +4,14 @@ import 'package:bmw_clone/car_details.dart';
 import 'package:bmw_clone/account.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({
+    super.key,
+    required this.toggleTheme,
+    required this.isDarkMode,
+  });
+
+  final VoidCallback toggleTheme;
+  final bool isDarkMode;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -40,6 +47,37 @@ class _HomePageState extends State<HomePage> {
 
   int _selectedIndex = 0;
 
+  // Pages for BottomNavigationBar tabs
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      _buildHomeTab(),
+      SearchPage(), // no parameters
+      AccountPage(), // no parameters
+    ];
+  }
+
+  Widget _buildHomeTab() {
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 0.9,
+        ),
+        itemCount: cars.length,
+        itemBuilder: (context, index) {
+          return _buildCarCard(cars[index]);
+        },
+      ),
+    );
+  }
+
   Widget _buildCarCard(Map<String, dynamic> car) {
     return GestureDetector(
       onTap: () {
@@ -60,13 +98,10 @@ class _HomePageState extends State<HomePage> {
                 top: Radius.circular(15),
               ),
               child: AspectRatio(
-                aspectRatio: 1.3, // keeps image proportion consistent
+                aspectRatio: 1.3,
                 child: Hero(
                   tag: car["name"],
-                  child: Image.asset(
-                    car["image"],
-                    fit: BoxFit.contain, // shows full car without cutting
-                  ),
+                  child: Image.asset(car["image"], fit: BoxFit.contain),
                 ),
               ),
             ),
@@ -97,63 +132,54 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBottomBar() {
-    return BottomNavigationBar(
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.blueAccent,
-      unselectedItemColor: Colors.white54,
-      currentIndex: _selectedIndex,
-      onTap: (index) {
-        setState(() => _selectedIndex = index);
-
-        if (index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SearchPage()),
-          );
-        } else if (index == 2) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AccountPage()),
-          );
-        }
-      },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.account_circle),
-          label: "Account",
-        ),
-      ],
-    );
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Titles for AppBar based on selected tab
+    const titles = ['BMW Garage', 'Search', 'Account'];
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text("BMW Garage"),
+        title: Text(titles[_selectedIndex]),
         backgroundColor: Colors.blueAccent,
         centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // 2 cards per row
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 0.9, // balanced card shape
+        actions: [
+          IconButton(
+            icon: Icon(
+              widget.isDarkMode
+                  ? Icons.wb_sunny_outlined
+                  : Icons.nightlight_round,
+              color: Colors.white,
+            ),
+            tooltip: widget.isDarkMode
+                ? 'Switch to Light Mode'
+                : 'Switch to Dark Mode',
+            onPressed: widget.toggleTheme,
           ),
-          itemCount: cars.length,
-          itemBuilder: (context, index) {
-            return _buildCarCard(cars[index]);
-          },
-        ),
+        ],
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.white54,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: "Account",
+          ),
+        ],
+      ),
     );
   }
 }

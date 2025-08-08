@@ -1,9 +1,17 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:bmw_clone/main.dart';
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:bmw_clone/main.dart'; // To navigate to LoginPage
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({
+    super.key,
+    required this.toggleTheme,
+    required this.isDarkMode,
+  });
+
+  final VoidCallback toggleTheme;
+  final bool isDarkMode;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -24,13 +32,11 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Animated background gradient
     _bgController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
 
-    // Logo animation
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -44,7 +50,6 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1,
     ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    // Car animation
     _carController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -70,7 +75,10 @@ class _SplashScreenState extends State<SplashScreen>
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 800),
-          pageBuilder: (_, __, ___) => const LoginPage(),
+          pageBuilder: (_, __, ___) => LoginPage(
+            toggleTheme: widget.toggleTheme,
+            isDarkMode: widget.isDarkMode,
+          ),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -114,13 +122,10 @@ class _SplashScreenState extends State<SplashScreen>
         child: Stack(
           children: [
             SizedBox.expand(
-              // 🔹 Take full width & height
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment:
-                    CrossAxisAlignment.center, // 🔹 Center horizontally
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Glowing BMW Logo
                   FadeTransition(
                     opacity: _logoFade,
                     child: ScaleTransition(
@@ -145,7 +150,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const SizedBox(height: 50),
-                  // Car entrance with fade + slide
                   SlideTransition(
                     position: _carSlide,
                     child: FadeTransition(
@@ -153,10 +157,24 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Image.asset(
                         'assets/images/bmw-m4.png',
                         height: 180,
-                        fit:
-                            BoxFit.contain, // 🔹 Scales properly on all screens
+                        fit: BoxFit.contain,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 30),
+                  // Theme toggle button in splash screen (optional)
+                  IconButton(
+                    icon: Icon(
+                      widget.isDarkMode
+                          ? Icons.wb_sunny_outlined
+                          : Icons.nightlight_round,
+                      color: Colors.blueAccent,
+                      size: 36,
+                    ),
+                    onPressed: widget.toggleTheme,
+                    tooltip: widget.isDarkMode
+                        ? 'Switch to Light Mode'
+                        : 'Switch to Dark Mode',
                   ),
                 ],
               ),
